@@ -355,7 +355,7 @@ public class UWBMain implements ActionListener {
         System.out.println(str);
 	}
 	
-	public void log(int x, int y){
+	public void log(double x, double y){
 		file.println(labelField.getText() + "\t" + x + "\t" + y + 
 				"\t" + System.currentTimeMillis());
 	}
