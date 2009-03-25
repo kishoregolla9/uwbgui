@@ -176,18 +176,6 @@ public class UWBShow extends JPanel {
         	addWalls(g2,WALL_COLOR);
         }
         
-        /*
-        RadioLocation rl_two = new RadioLocation(3,"radio2",DataType.CIRCLE,
-				new Color(0,0,255),5,4,2.5,0.5);
-        RadioLocation rl_three = new RadioLocation(4,"radio2",DataType.CIRCLE,
-				new Color(0,0,255),7,7,3,0.5);
-        RadioLocation rl_four = new RadioLocation(5,"radio2",DataType.TWOPOINTS,
-				new Color(0,0,255),5,4,2.5,0.5,  7,7,3,0.5);
-        plotRadio(g2,rl_two);
-        plotRadio(g2,rl_three);
-        plotRadio(g2,rl_four);
-        */
-        
         for(int i = 0; i<rls.size(); i++){
         	plotRadio(g2,rls.get(i));
         }

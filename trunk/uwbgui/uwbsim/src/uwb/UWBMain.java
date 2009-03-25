@@ -2,28 +2,31 @@ package uwb;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 public class UWBMain implements ActionListener {
 	// VARIABLES YOU CAN MODIFY
@@ -39,6 +42,14 @@ public class UWBMain implements ActionListener {
 	InetAddress myAddress;
 	InetAddress theirAddress;
 	boolean listen;
+	
+	// for recording
+	JTextField labelField;
+	JButton toggleRecord;
+	JTextField countField;
+	String outputLocation = "/output.txt";
+	private PrintStream file;
+	private boolean recordOn = false;
 	
 	
 	public UWBMain() throws HeadlessException, IOException{
@@ -135,6 +146,54 @@ public class UWBMain implements ActionListener {
         
         sidebar.add(commPanel,BorderLayout.PAGE_END);
         
+        // set up the measurement panel
+        JPanel measPanel = new JPanel();
+        measPanel.setLayout(new BoxLayout(measPanel, BoxLayout.PAGE_AXIS));
+        measPanel.add(new JLabel("Measurement (output to text file)"));
+        
+        JPanel countPanel = new JPanel();
+        countPanel.setLayout(new BoxLayout(countPanel, BoxLayout.LINE_AXIS));
+        countPanel.add(new JLabel("Count:"));
+        countField = new JTextField("0");
+        countField.setSize(new Dimension(20,10));
+        countField.setEditable(false);
+        countPanel.add(countField);
+        measPanel.add(countPanel);
+        
+        JPanel labelPanel = new JPanel();
+        labelPanel.setLayout(new BoxLayout(labelPanel, BoxLayout.LINE_AXIS));
+        labelPanel.add(new JLabel("Label:"));
+        labelField = new JTextField("");
+        labelField.setEditable(true);
+        labelPanel.add(labelField);
+        measPanel.add(labelPanel);
+        
+        toggleRecord = new JButton("Start");
+        toggleRecord.setActionCommand("toggleRecord");
+        toggleRecord.addActionListener(this);
+        measPanel.add(toggleRecord);
+        
+        /*
+        JPanel checkPanel = new JPanel();
+        checkPanel.setLayout(new BoxLayout(checkPanel, BoxLayout.LINE_AXIS));
+        JCheckBox check = new JCheckBox();
+        checkPanel.add(check);
+        checkPanel.add(new JLabel("stop automatically after "));
+        measPanel.add(checkPanel);
+        
+        JPanel checkPanel2 = new JPanel();
+        checkPanel2.setLayout(new BoxLayout(checkPanel2, BoxLayout.LINE_AXIS));
+        JTextField autoStop = new JTextField("100");
+        checkPanel2.add(autoStop);
+        checkPanel2.add(new JLabel(" packets"));
+        measPanel.add(checkPanel2);
+        */
+        
+        sidebar.add(measPanel);
+        
+        //set up the file output stream
+        file = new PrintStream(new FileOutputStream(outputLocation));
+        
         f.pack();
         f.setLocationRelativeTo(null);
         f.setVisible(true);
@@ -177,6 +236,17 @@ public class UWBMain implements ActionListener {
 			}
 			gui.repaint();
 		}
+		else if(e.getActionCommand().equals("toggleRecord")){
+			if(recordOn){
+				recordOn = false;
+				toggleRecord.setText("Start");
+			}
+			else{
+				recordOn = true;
+				toggleRecord.setText("Stop");
+			}
+			
+		}
 	}
 	
 	public void extractDataFromPacket(DatagramPacket p) throws IOException{
@@ -210,6 +280,9 @@ public class UWBMain implements ActionListener {
 			print(rad2);
 			print(var2);
 			
+			// log information in file
+			log(x1, y1);
+			
 			rl = new RadioLocation(id,"radio"+id,DataType.TWOPOINTS,
     				new Color(0,0,255),x1,y1,rad1,var1,x2,y2,rad2,var2);
 		}
@@ -219,6 +292,10 @@ public class UWBMain implements ActionListener {
 			double y1 = Double.parseDouble(tokens[4]);
 			double z1 = Double.parseDouble(tokens[5]);
 			print("(" + x1 + "," + y1 + ")");
+			
+			// log information in file
+			log(x1, y1);
+			
 			rl = new RadioLocation(id,"radio"+id,DataType.SIMPLE,
     				new Color(0,0,255),x1,y1);
 	    	// update the sidebar
@@ -238,6 +315,9 @@ public class UWBMain implements ActionListener {
 			double var1 = Double.parseDouble(tokens[7]);
 			
 			print("(" + x1 + "," + y1 + "):" + " radius " + rad1 + ", variance " + var1);
+			
+			// log information in file
+			log(x1, y1);
 			
 			rl = new RadioLocation(id,"radio"+id,DataType.CIRCLE,
     				new Color(0,0,255),x1,y1,rad1,var1);
@@ -263,6 +343,7 @@ public class UWBMain implements ActionListener {
 			return;
 		}
 		print("received packet.");
+		tryIncrementCounter();
         extractDataFromPacket(packet);
 	}
 	
@@ -274,10 +355,21 @@ public class UWBMain implements ActionListener {
         System.out.println(str);
 	}
 	
+	public void log(int x, int y){
+		file.println(labelField.getText() + "\t" + x + "\t" + y + 
+				"\t" + System.currentTimeMillis());
+	}
+	
 	public void print(double d){
 		print(Double.toString(d));
 	}
 	
+	public void tryIncrementCounter(){
+		if(recordOn){
+			int count = Integer.parseInt(countField.getText()) + 1;
+			countField.setText(count + "");
+		}
+	}
 	
     public static void main(String[] args) throws InterruptedException, HeadlessException, IOException {
         UWBMain uwbm = new UWBMain();
