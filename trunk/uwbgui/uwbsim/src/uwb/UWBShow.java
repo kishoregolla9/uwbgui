@@ -63,7 +63,12 @@ public class UWBShow extends JPanel {
     
     public int getRevisionNo(int id){
     	int index = getIndexNo(id);
-		return rRevisionNos.get(index).intValue();
+    	if(index == -1){
+    		return -1;
+    	}
+    	else{
+    		return rRevisionNos.get(index).intValue();
+    	}
     }
     
     public boolean addRadioLoc(RadioLocation rl, int revNum){

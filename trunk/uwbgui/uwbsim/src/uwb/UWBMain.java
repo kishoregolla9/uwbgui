@@ -47,7 +47,7 @@ public class UWBMain implements ActionListener {
 	JTextField labelField;
 	JButton toggleRecord;
 	JTextField countField;
-	String outputLocation = "/output.txt";
+	String outputLocation = "output.txt";
 	private PrintStream file;
 	private boolean recordOn = false;
 	
@@ -261,9 +261,13 @@ public class UWBMain implements ActionListener {
 		DataType datatype = DataType.convert(Integer.parseInt(tokens[2]));
 		
 		RadioLocation rl;
+		
+		double x1;
+		double y1;
+		
 		if(datatype==DataType.TWOPOINTS){
-			double x1 = Double.parseDouble(tokens[3]);
-			double y1 = Double.parseDouble(tokens[4]);
+			x1 = Double.parseDouble(tokens[3]);
+			y1 = Double.parseDouble(tokens[4]);
 			double rad1 = Double.parseDouble(tokens[5]);
 			double var1 = Double.parseDouble(tokens[6]);
 			double x2 = Double.parseDouble(tokens[7]);
@@ -280,21 +284,15 @@ public class UWBMain implements ActionListener {
 			print(rad2);
 			print(var2);
 			
-			// log information in file
-			log(x1, y1);
-			
 			rl = new RadioLocation(id,"radio"+id,DataType.TWOPOINTS,
     				new Color(0,0,255),x1,y1,rad1,var1,x2,y2,rad2,var2);
 		}
 		
 		else if(datatype==DataType.SIMPLE){
-			double x1 = Double.parseDouble(tokens[3]);
-			double y1 = Double.parseDouble(tokens[4]);
+			x1 = Double.parseDouble(tokens[3]);
+			y1 = Double.parseDouble(tokens[4]);
 			double z1 = Double.parseDouble(tokens[5]);
 			print("(" + x1 + "," + y1 + ")");
-			
-			// log information in file
-			log(x1, y1);
 			
 			rl = new RadioLocation(id,"radio"+id,DataType.SIMPLE,
     				new Color(0,0,255),x1,y1);
@@ -308,16 +306,13 @@ public class UWBMain implements ActionListener {
 		}
 		
 		else if(datatype==DataType.CIRCLE){
-			double x1 = Double.parseDouble(tokens[3]);
-			double y1 = Double.parseDouble(tokens[4]);
+			x1 = Double.parseDouble(tokens[3]);
+			y1 = Double.parseDouble(tokens[4]);
 			double z1 = Double.parseDouble(tokens[5]);
 			double rad1 = Double.parseDouble(tokens[6]);
 			double var1 = Double.parseDouble(tokens[7]);
 			
 			print("(" + x1 + "," + y1 + "):" + " radius " + rad1 + ", variance " + var1);
-			
-			// log information in file
-			log(x1, y1);
 			
 			rl = new RadioLocation(id,"radio"+id,DataType.CIRCLE,
     				new Color(0,0,255),x1,y1,rad1,var1);
@@ -325,8 +320,12 @@ public class UWBMain implements ActionListener {
 		else{
 			return;
 		}
-    	gui.addRadioLoc(rl,update);
-    	gui.repaint();
+		// log information in file
+		if(update > gui.getRevisionNo(id)){
+			log(id, x1, y1);
+			gui.addRadioLoc(rl,update);
+	    	gui.repaint();
+		}
 
     	return;
 	}
@@ -355,8 +354,8 @@ public class UWBMain implements ActionListener {
         System.out.println(str);
 	}
 	
-	public void log(double x, double y){
-		file.println(labelField.getText() + "\t" + x + "\t" + y + 
+	public void log(int id, double x, double y){
+		file.println(labelField.getText() + "\t" + id + "\t" + x + "\t" + y + 
 				"\t" + System.currentTimeMillis());
 	}
 	
@@ -372,7 +371,7 @@ public class UWBMain implements ActionListener {
 	}
 	
     public static void main(String[] args) throws InterruptedException, HeadlessException, IOException {
-        UWBMain uwbm = new UWBMain();
+    	UWBMain uwbm = new UWBMain();
         //print("initialize object");
         
         /*
@@ -381,15 +380,18 @@ public class UWBMain implements ActionListener {
         DatagramPacket packet1 = ps.generatePacket(2, // id number
         		1, // update number 
         		0, // data type 
-        		15,27,0); // x,y,z coords
+        		4,5,0); // x,y,z coords
+        uwbm.tryIncrementCounter();
         uwbm.extractDataFromPacket(packet1);
         
         packet1 = ps.generatePacket(2, // id number
         		2, // update number 
         		0, // data type 
-        		18,31,0); // x,y,z coords
+        		5,6,0); // x,y,z coords
+        uwbm.tryIncrementCounter();
         uwbm.extractDataFromPacket(packet1);
         */
+        
         System.out.println(System.getProperty("user.dir"));
         
         while(true){
