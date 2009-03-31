@@ -7,9 +7,9 @@ public class RadioLocation {
 	int idno;
 	double x1, y1, rad1, var1, x2, y2, rad2, var2;
 	String label;
-	Color color;
+	//Color color; // deprecated!
 	
-	public RadioLocation(int idno, String label, DataType dt, Color color ,double x1,
+	public RadioLocation(int idno, String label, DataType dt, double x1,
 			double y1, double rad1, double var1, double x2, double y2, double rad2, double var2){
 		this.dt = DataType.TWOPOINTS;
 		this.x1 = x1;
@@ -21,11 +21,10 @@ public class RadioLocation {
 		this.rad2 = rad2;
 		this.var2 = var2;
 		this.label = label;
-		this.color = color;
 		this.idno = idno;
 	}
 	
-	public RadioLocation(int idno, String label, DataType dt, Color color ,double x1,
+	public RadioLocation(int idno, String label, DataType dt, double x1,
 			double y1, double rad1, double var1){
 		this.dt = DataType.CIRCLE;
 		this.x1 = x1;
@@ -33,30 +32,20 @@ public class RadioLocation {
 		this.rad1 = rad1;
 		this.var1 = var1;
 		this.label = label;
-		this.color = color;
 		this.idno = idno;
 	}
 	
-	public RadioLocation(int idno, String label, DataType dt, Color color ,double x1,
+	public RadioLocation(int idno, String label, DataType dt, double x1,
 			double y1){
 		this.dt = DataType.SIMPLE;
 		this.x1 = x1;
 		this.y1 = y1;
 		this.label = label;
-		this.color = color;
 		this.idno = idno;
 	}
 	
 	public String getLabel(){
 		return this.label;
-	}
-	
-	public Color getColor(){
-		return this.color;
-	}
-	
-	public void setColor(Color color){
-		this.color = color;
 	}
 	
 	public DataType getDataType(){

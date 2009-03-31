@@ -4,6 +4,7 @@ enum DataType{
 	TWOPOINTS,
 	CIRCLE,
 	SIMPLE,
+	TWORADIOS,
 	NONE;
 	
 	public static DataType convert(int i){
@@ -15,6 +16,9 @@ enum DataType{
 		}
 		else if(i==2){
 			return TWOPOINTS;
+		}
+		else if(i==3){
+			return TWORADIOS;
 		}
 		else{
 			return NONE;

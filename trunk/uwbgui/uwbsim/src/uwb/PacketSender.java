@@ -84,6 +84,14 @@ public class PacketSender {
 		return new DatagramPacket(concat, concat.length, theirAddress, theirPort);
 	}
 	
+	public DatagramPacket generatePacket(int id, int update, int datatype, double x, 
+			double y, double z, int id2, double x2, double y2, double z2){
+		String str = id + "," + update + "," + datatype + "," + x + "," + y + "," + z + 
+						"," + id2 + "," + x2 + "," + y2 + "," + z2;
+		byte[] concat = Converter.toByta(str.getBytes());
+		return new DatagramPacket(concat, concat.length, theirAddress, theirPort);
+	}
+	
 	public DatagramPacket generatePacket(int id, int update, int datatype, double x1, double y1, 
 			double rad1, double var1, double x2, double y2, double rad2, double var2){
 		
