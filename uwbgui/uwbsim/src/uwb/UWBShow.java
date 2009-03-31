@@ -12,6 +12,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Random;
 
 import javax.swing.JPanel;
  
@@ -41,14 +42,26 @@ public class UWBShow extends JPanel {
     //RadioLocation radio0 = new RadioLocation(0,"radio0",new Color(255,255,0),4,5,
     //		new double[][] {{0.6,1},{0.7,2},{0.9,3.5}});
     
-    // three synchronized ArrayLists
+    // four synchronized ArrayLists
     private ArrayList<RadioLocation> rls = new ArrayList<RadioLocation>(10);
     private ArrayList<Integer> rIds = new ArrayList<Integer>(10);
     private ArrayList<Integer> rRevisionNos = new ArrayList<Integer>(10);
+    private ArrayList<Color> rColors = new ArrayList<Color>(10);
+    
+    // color list for stock colors
+    private ArrayList<Color> initialColors = new ArrayList<Color>(10);
  
     public UWBShow() throws IOException {
     	// populate lists of anchors and waypoints
     	updateStartParams();
+    	
+    	initialColors.add(Color.black);
+    	initialColors.add(Color.red);
+    	initialColors.add(Color.blue);
+    	initialColors.add(Color.green);
+    	initialColors.add(Color.orange);
+    	initialColors.add(Color.yellow);
+    	initialColors.add(Color.cyan);
     }
     
     public int getIndexNo(int id){
@@ -71,6 +84,34 @@ public class UWBShow extends JPanel {
     	}
     }
     
+    public Color getNewColor(){
+    	if (initialColors.size() > 0){
+    		return initialColors.remove(0);
+    	}
+    	else{
+    		Random r = new Random();
+    		return new Color((int)Math.floor(r.nextDouble()*255),
+    				(int)Math.floor(r.nextDouble()*255),
+    				(int)Math.floor(r.nextDouble()*255));
+    	}
+    }
+    
+    public boolean addRadioLocNoUpdateNum(RadioLocation rl){
+    	int index = getIndexNo(rl.idno);
+    	
+    	if(index == -1){ // so the id number of this radio location has not been added yet
+    		addRadioLoc(rl,1);
+    		return true;
+    	}
+    	else{
+    		// find where rl is in rls by searching by index
+			System.out.println("Force update!");
+			this.rls.set(index, rl);    	// replace the RadioLocation with a new one
+			return true;
+    	}
+    }
+    
+    
     public boolean addRadioLoc(RadioLocation rl, int revNum){
     	int index = getIndexNo(rl.idno);
     	
@@ -78,6 +119,7 @@ public class UWBShow extends JPanel {
     		rls.add(rls.size(),rl);
     		rIds.add(rl.idno);
     		rRevisionNos.add(revNum);
+    		rColors.add(getNewColor());
     		System.out.println("adding radio; was not here before.");
     		return true;
     	}
@@ -99,7 +141,6 @@ public class UWBShow extends JPanel {
     			return false;
     		}
     	}
-    	
     }
     
     public void remRadioLoc(RadioLocation rl){
@@ -222,18 +263,18 @@ public class UWBShow extends JPanel {
     	DataType dt = rl.getDataType();
     	Color tempColor = g2.getColor();
     	if(dt == DataType.CIRCLE){
-    		g2.setColor(rl.getColor());
+    		g2.setColor(rColors.get(getIndexNo(rl.idno)));
     		g2.draw(circle(rl.x1,rl.y1,rl.rad1-rl.var1));
     		g2.draw(circle(rl.x1,rl.y1,rl.rad1+rl.var1));
     	}
     	else if(dt == DataType.TWOPOINTS){
-    		g2.setColor(rl.getColor());
+    		g2.setColor(rColors.get(getIndexNo(rl.idno)));
     		double[] intersections = rl.twoPointsReturn();
     		plotPoint(g2,intersections[0],intersections[1]);
     		plotPoint(g2,intersections[2],intersections[3]);
     	}
     	else if(dt == DataType.SIMPLE){
-    		g2.setColor(rl.getColor());
+    		g2.setColor(rColors.get(getIndexNo(rl.idno)));
     		plotPoint(g2, rl.x1, rl.y1);
     	}
     	g2.setColor(tempColor);
@@ -243,6 +284,7 @@ public class UWBShow extends JPanel {
     public Color certaintyToColor(double certainty){
     	return new Color( (float) (1-certainty), 0, (float) certainty);
     }
+    
     public void addAnchors(Graphics2D g2, Color c){
     	Color tempColor = g2.getColor();
     	g2.setColor(c);

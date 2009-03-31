@@ -68,17 +68,27 @@ public class UWBMain implements ActionListener {
 		
 		UWBShow comp = new UWBShow();
         comp.setBorder(BorderFactory.createTitledBorder("Ultra-Wide Band Network Simulation"));
-        comp.setPreferredSize(new java.awt.Dimension(700,700));
+        
+        // determine sizing
+        double width = (comp.maxX - comp.minX)/comp.gridSizeX;
+        double height = (comp.maxY - comp.minY)/comp.gridSizeY;
+        
+        int realWidth = (int)(700*width/height);
+        
+        System.out.println(realWidth);
+        
+        comp.setPreferredSize(new java.awt.Dimension(realWidth,700));
+        //comp.setPreferredSize(new java.awt.Dimension(700,700));
         
         sidebar = new JPanel();
         sidebar.setPreferredSize(new java.awt.Dimension(250,700));
         
         bottom = new JPanel();
-        bottom.setPreferredSize(new java.awt.Dimension(950,100));
+        bottom.setPreferredSize(new java.awt.Dimension(realWidth+250,100));
 
         // configure the applet's frame
         JFrame f = new JFrame("UWBSim");
-        f.setPreferredSize(new java.awt.Dimension(950,800));
+        f.setPreferredSize(new java.awt.Dimension(realWidth+250,800));
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.getContentPane().setLayout( new BorderLayout() );
         f.getContentPane().add(comp,BorderLayout.CENTER);
@@ -104,7 +114,7 @@ public class UWBMain implements ActionListener {
         textArea.setWrapStyleWord(true);
 
         // set up the output area
-        outputArea = new JTextArea(5, 80);
+        outputArea = new JTextArea(5, (int)80*(realWidth+250)/950);
         JScrollPane scrollOutput = new JScrollPane(outputArea); 
         outputArea.setEditable(false);
         outputArea.setWrapStyleWord(true);
@@ -262,12 +272,9 @@ public class UWBMain implements ActionListener {
 		
 		RadioLocation rl;
 		
-		double x1;
-		double y1;
-		
 		if(datatype==DataType.TWOPOINTS){
-			x1 = Double.parseDouble(tokens[3]);
-			y1 = Double.parseDouble(tokens[4]);
+			double x1 = Double.parseDouble(tokens[3]);
+			double y1 = Double.parseDouble(tokens[4]);
 			double rad1 = Double.parseDouble(tokens[5]);
 			double var1 = Double.parseDouble(tokens[6]);
 			double x2 = Double.parseDouble(tokens[7]);
@@ -275,59 +282,93 @@ public class UWBMain implements ActionListener {
 			double rad2 = Double.parseDouble(tokens[9]);
 			double var2 = Double.parseDouble(tokens[10]);
 			
-			print(x1);
-			print(y1);
-			print(rad1);
-			print(var1);
-			print(x2);
-			print(y2);
-			print(rad2);
-			print(var2);
+			print("two-point radio specification; circle 1 is (" + 
+					x1 + "," + y1 + "):" + " radius " + rad1 + ", variance " + var1);
+			print("     circle 2 is (" + 
+					x2 + "," + y2 + "):" + " radius " + rad2 + ", variance " + var2);
+			
 			
 			rl = new RadioLocation(id,"radio"+id,DataType.TWOPOINTS,
-    				new Color(0,0,255),x1,y1,rad1,var1,x2,y2,rad2,var2);
+    				x1,y1,rad1,var1,x2,y2,rad2,var2);
+			
+			// log information in file
+			if(update > gui.getRevisionNo(id)){
+				log(id, x1, y1);
+				gui.addRadioLoc(rl,update);
+		    	gui.repaint();
+			}
 		}
 		
 		else if(datatype==DataType.SIMPLE){
-			x1 = Double.parseDouble(tokens[3]);
-			y1 = Double.parseDouble(tokens[4]);
+			double x1 = Double.parseDouble(tokens[3]);
+			double y1 = Double.parseDouble(tokens[4]);
 			double z1 = Double.parseDouble(tokens[5]);
 			print("(" + x1 + "," + y1 + ")");
 			
-			rl = new RadioLocation(id,"radio"+id,DataType.SIMPLE,
-    				new Color(0,0,255),x1,y1);
+			rl = new RadioLocation(id,"radio"+id,DataType.SIMPLE,x1,y1);
+			
+			// log information in file
+			if(update > gui.getRevisionNo(id)){
+				log(id, x1, y1);
+				gui.addRadioLoc(rl,update);
+		    	gui.repaint();
+			}
+			
 	    	// update the sidebar
-	    	textArea.append(x1 + ", " + y1 + "\n");
-	        //Make sure the new text is visible, even if there
-	        //was a selection in the text area.
-	        textArea.setCaretPosition(textArea.getDocument().getLength());
+			printSidebar(id + ": " + x1 + ", " + y1 + "\n");
 	    	
 	    	print("hello");
 		}
 		
 		else if(datatype==DataType.CIRCLE){
-			x1 = Double.parseDouble(tokens[3]);
-			y1 = Double.parseDouble(tokens[4]);
+			double x1 = Double.parseDouble(tokens[3]);
+			double y1 = Double.parseDouble(tokens[4]);
 			double z1 = Double.parseDouble(tokens[5]);
 			double rad1 = Double.parseDouble(tokens[6]);
 			double var1 = Double.parseDouble(tokens[7]);
 			
 			print("(" + x1 + "," + y1 + "):" + " radius " + rad1 + ", variance " + var1);
+			printSidebar(id + ": " + "(" + x1 + "," + y1 + "):" + " radius " + rad1 + ", variance " + var1);
 			
-			rl = new RadioLocation(id,"radio"+id,DataType.CIRCLE,
-    				new Color(0,0,255),x1,y1,rad1,var1);
+			rl = new RadioLocation(id,"radio"+id,DataType.SIMPLE,x1,y1);
+			
+			// log information in file
+			if(update > gui.getRevisionNo(id)){
+				log(id, x1, y1);
+				gui.addRadioLoc(rl,update);
+		    	gui.repaint();
+			}
 		}
-		else{
-			return;
+		else if(datatype==DataType.TWORADIOS){
+			double x1 = Double.parseDouble(tokens[3]);
+			double y1 = Double.parseDouble(tokens[4]);
+			double z1 = Double.parseDouble(tokens[5]);
+			int id2 = Integer.parseInt(tokens[6]);
+			double x2 = Double.parseDouble(tokens[7]);
+			double y2 = Double.parseDouble(tokens[8]);
+			double z2 = Double.parseDouble(tokens[9]);
+			
+			print("(" + x1 + "," + y1 + ")");
+			print("(" + x2 + "," + y2 + ")");
+			printSidebar(id + ": " + x1 + ", " + y1 + "\n");
+			printSidebar(id2 + ": " + x2 + ", " + y2 + "\n");
+			
+			rl = new RadioLocation(id,"radio"+id,DataType.SIMPLE,
+    				x1,y1);
+			
+			RadioLocation rl2 = new RadioLocation(id2,"radio"+id2,DataType.SIMPLE,
+    				x2,y2);
+			
+			// log information in file
+			if(update > gui.getRevisionNo(id)){
+				log(id, x1, y1);
+				log(id2, x2, y2);
+				gui.addRadioLoc(rl,update);
+				gui.addRadioLocNoUpdateNum(rl2);
+		    	gui.repaint();
+			}
 		}
-		// log information in file
-		if(update > gui.getRevisionNo(id)){
-			log(id, x1, y1);
-			gui.addRadioLoc(rl,update);
-	    	gui.repaint();
-		}
-
-    	return;
+		return;
 	}
 	
 	public void listenForPacketsAndUpdate() throws IOException{
@@ -352,6 +393,13 @@ public class UWBMain implements ActionListener {
         //was a selection in the text area.
         outputArea.setCaretPosition(outputArea.getDocument().getLength());
         System.out.println(str);
+	}
+	
+	public void printSidebar(String str){
+		textArea.append(str);
+        //Make sure the new text is visible, even if there
+        //was a selection in the text area.
+        textArea.setCaretPosition(textArea.getDocument().getLength());
 	}
 	
 	public void log(int id, double x, double y){
@@ -384,10 +432,26 @@ public class UWBMain implements ActionListener {
         uwbm.tryIncrementCounter();
         uwbm.extractDataFromPacket(packet1);
         
+        packet1 = ps.generatePacket(1, // id number
+        		1, // update number 
+        		0, // data type 
+        		5,6,0); // x,y,z coords
+        uwbm.tryIncrementCounter();
+        uwbm.extractDataFromPacket(packet1);
+        
         packet1 = ps.generatePacket(2, // id number
         		2, // update number 
         		0, // data type 
-        		5,6,0); // x,y,z coords
+        		6,7,0); // x,y,z coords
+        uwbm.tryIncrementCounter();
+        uwbm.extractDataFromPacket(packet1);
+        
+        packet1 = ps.generatePacket(2, // id number
+        		3, // update number 
+        		3, // data type 
+        		4,4,0,// x,y,z coords
+        		1,// id number for other radio
+        		1,1,0); // x,y,z coords
         uwbm.tryIncrementCounter();
         uwbm.extractDataFromPacket(packet1);
         */
