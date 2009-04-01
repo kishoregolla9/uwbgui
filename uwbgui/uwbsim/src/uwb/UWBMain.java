@@ -403,8 +403,10 @@ public class UWBMain implements ActionListener {
 	}
 	
 	public void log(int id, double x, double y){
-		file.println(labelField.getText() + "\t" + id + "\t" + x + "\t" + y + 
+		if(recordOn){
+			file.println(labelField.getText() + "\t" + id + "\t" + x + "\t" + y + 
 				"\t" + System.currentTimeMillis());
+		}
 	}
 	
 	public void print(double d){
