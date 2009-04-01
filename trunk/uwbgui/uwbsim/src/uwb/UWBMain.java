@@ -424,7 +424,7 @@ public class UWBMain implements ActionListener {
     	UWBMain uwbm = new UWBMain();
         //print("initialize object");
         
-        /*
+        
         //testing code: generate packets on this computer and read them
         PacketSender ps = new PacketSender();
         DatagramPacket packet1 = ps.generatePacket(2, // id number
@@ -456,7 +456,7 @@ public class UWBMain implements ActionListener {
         		1,1,0); // x,y,z coords
         uwbm.tryIncrementCounter();
         uwbm.extractDataFromPacket(packet1);
-        */
+        
         
         System.out.println(System.getProperty("user.dir"));
         

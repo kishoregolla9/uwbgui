@@ -1,7 +1,5 @@
 package uwb;
 
-import java.awt.Color;
-
 public class RadioLocation {
 	private DataType dt;
 	int idno;
