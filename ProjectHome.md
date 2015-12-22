@@ -1,0 +1,1 @@
+Java-based GUI for UWB cooperative localization simulation, for MIT CSAIL, Wireless Communications Research Group.  Displays radios' beliefs about their current location.
